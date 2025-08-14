@@ -1,0 +1,1935 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Машина Больцмана - Демонстрация</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Стили для подсказок терминов */
+        .term-highlight {
+            position: relative;
+        }
+        
+        .term-highlight::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 50%;
+            top: calc(100% + 8px);
+            transform: translateX(-50%);
+            background: rgba(20, 20, 30, 0.98);
+            color: #e0e0e0;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+            width: 300px;
+            max-width: calc(100vw - 20px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 10000;
+            pointer-events: none;
+            white-space: normal;
+        }
+        
+        /* Корректировка позиции для крайних терминов */
+        .term-highlight:first-of-type::after {
+            left: 0;
+            transform: none;
+        }
+        
+        .term-highlight:last-of-type::after {
+            left: auto;
+            right: 0;
+            transform: none;
+        }
+
+        .term-highlight:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .term-highlight {
+            position: relative;
+            border-bottom: 2px dotted #667eea;
+            cursor: help;
+            transition: all 0.3s ease;
+            padding-bottom: 1px;
+            display: inline-block;
+        }
+
+        .term-highlight:hover {
+            border-bottom-color: #818cf8;
+            color: #818cf8;
+        }
+
+        .term-tooltip {
+            position: absolute;
+            top: 28px;
+            left: 0;
+            transform: translateX(-20%);
+            background: rgba(20, 20, 30, 0.98);
+            color: #e0e0e0;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 13px;
+            line-height: 1.6;
+            width: 280px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        /* Особая позиция для второго термина чтобы не выходил за край */
+        .term-highlight:nth-of-type(2) .term-tooltip {
+            left: auto;
+            right: -50px;
+            transform: none;
+        }
+
+        .term-highlight:hover .term-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .term-tooltip::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 30px;
+            border: 8px solid transparent;
+            border-bottom-color: rgba(102, 126, 234, 0.4);
+        }
+
+        .term-tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 30px;
+            border: 7px solid transparent;
+            border-bottom-color: rgba(20, 20, 30, 0.98);
+            margin-bottom: -1px;
+        }
+
+        /* Для второго термина стрелка правее */
+        .term-highlight:nth-of-type(2) .term-tooltip::before,
+        .term-highlight:nth-of-type(2) .term-tooltip::after {
+            left: auto;
+            right: 80px;
+        }
+
+        .term-tooltip strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .theory-intro p {
+            margin: 0 0 20px 0;
+            line-height: 1.8;
+        }
+
+        .theory-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .theory-intro {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #e0e0e0;
+        }
+
+        .theory-intro p {
+            margin: 0 0 20px 0;
+            line-height: 1.8;
+            text-align: justify;
+        }
+
+        .term-highlight {
+            position: relative;
+            border-bottom: 2px dotted #667eea;
+            cursor: help;
+            transition: all 0.3s ease;
+            padding-bottom: 1px;
+        }
+
+        .term-highlight:hover {
+            border-bottom-color: #818cf8;
+            color: #818cf8;
+        }
+
+        .term-tooltip {
+            position: absolute;
+            background: rgba(20, 20, 30, 0.98);
+            color: #e0e0e0;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+            width: 280px;
+            max-width: calc(100vw - 40px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        .term-tooltip.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .more-info-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            margin: 0 auto;
+        }
+
+        .more-info-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .more-info-btn.active .btn-icon {
+            transform: rotate(180deg);
+        }
+
+        .btn-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .theory-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            margin-top: 20px;
+        }
+
+        .theory-details.active {
+            max-height: 2000px;
+        }
+
+        .theory-block {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .theory-block h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .theory-block p {
+            line-height: 1.7;
+            color: #d0d0d0;
+            margin-bottom: 12px;
+        }
+
+        .theory-block ul {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+
+        .theory-block li {
+            color: #b0b0b0;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .theory-block li strong {
+            color: #e0e0e0;
+        }
+
+        .note {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 3px solid #667eea;
+            padding: 12px;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            margin-top: 15px;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .train-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .train-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .train-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .mode-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .mode-btn.active {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+
+        .mode-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .slider-container {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .slider-label {
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #a0a0a0;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: #a0a0a0;
+            text-align: center;
+        }
+
+        .visualization {
+            display: none;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .visualization.active {
+            display: flex;
+        }
+
+        .viz-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .viz-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #667eea;
+        }
+
+        canvas {
+            border-radius: 8px;
+            image-rendering: pixelated;
+            background: #000;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .filter-item {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .filter-item:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .filter-canvas {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            background: #000;
+            image-rendering: pixelated;
+        }
+
+        .filter-preview {
+            position: fixed;
+            background: rgba(20, 20, 30, 0.98);
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+            z-index: 1000;
+            display: none;
+            pointer-events: none;
+        }
+
+        .filter-preview.active {
+            display: block;
+        }
+
+        .filter-preview-canvas {
+            width: 224px;
+            height: 224px;
+            image-rendering: pixelated;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        .filter-preview-title {
+            color: #667eea;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        .filters-explanation {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 3px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            max-width: 600px;
+            margin: 0 auto 20px;
+        }
+
+        .filters-explanation h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .filters-explanation p {
+            line-height: 1.6;
+            color: #b0b0b0;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .filters-explanation ul {
+            color: #b0b0b0;
+            font-size: 14px;
+            margin-left: 20px;
+            line-height: 1.6;
+        }
+
+        .error-stats {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin: 5px 0;
+            padding: 3px 0;
+        }
+
+        .stat-label {
+            color: #888;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat-value {
+            color: #667eea;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            display: inline-block;
+            vertical-align: baseline;
+        }
+
+        .help-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            font-size: 11px;
+            cursor: help;
+            position: relative;
+            transition: background 0.3s ease;
+        }
+
+        .help-icon:hover {
+            background: rgba(102, 126, 234, 0.4);
+        }
+
+        .help-icon .tooltip {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 20, 30, 0.95);
+            color: #e0e0e0;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .help-icon:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .help-icon .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(20, 20, 30, 0.95);
+        }
+
+        .tooltip-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .tooltip-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .tooltip-item.active {
+            background: rgba(102, 126, 234, 0.2);
+            box-shadow: 0 0 0 1px rgba(102, 126, 234, 0.4);
+        }
+
+        .tooltip-item.active .tooltip-range {
+            color: #818cf8;
+            text-shadow: 0 0 8px rgba(102, 126, 234, 0.5);
+        }
+
+        .tooltip-item.active .tooltip-desc {
+            color: #e0e0e0;
+        }
+
+        .tooltip-range {
+            color: #667eea;
+            font-weight: 600;
+            min-width: 90px;
+        }
+
+        .tooltip-desc {
+            color: #b0b0b0;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 10px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .checkbox-label {
+            font-size: 14px;
+            color: #b0b0b0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-container:hover .checkbox-label {
+            color: #e0e0e0;
+        }
+
+        .neuron-analysis {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .analysis-controls {
+            margin-bottom: 25px;
+        }
+
+        .activation-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .analysis-panels {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .analysis-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .analysis-title {
+            text-align: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #a0a0a0;
+            font-weight: 500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .wide-tooltip {
+            width: 380px;
+            white-space: normal;
+        }
+
+        .wide-tooltip .tooltip-content {
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .tooltip-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #e0e0e0;
+        }
+
+        .tooltip-text {
+            margin-bottom: 8px;
+            color: #b0b0b0;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .tooltip-colors {
+            margin-top: 8px;
+        }
+
+        .color-item {
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            margin: 4px 0;
+            font-size: 12px;
+            color: #b0b0b0;
+        }
+
+        .analysis-panel canvas {
+            border-radius: 8px;
+            background: #000;
+            image-rendering: pixelated;
+        }
+
+        .info-panel {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 3px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .info-panel h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .info-panel p {
+            line-height: 1.6;
+            color: #b0b0b0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Машина Больцмана</h1>
+        
+        <div class="theory-section">
+            <div class="theory-intro">
+                <p><strong>Машина Больцмана</strong> — это разновидность искусственной нейронной сети, относящаяся к <span class="term-highlight" data-tooltip="Стохастическая модель - модель, использующая элементы случайности в процессе работы. В отличие от детерминированных систем, где результат всегда предсказуем, стохастические модели могут давать разные результаты при одинаковых входных данных.">стохастическим</span> <span class="term-highlight" data-tooltip="Рекуррентная модель - нейронная сеть с обратными связями, где выходы нейронов могут влиять на их же входы. Это позволяет сети иметь память и обрабатывать последовательности данных.">рекуррентным моделям</span> и являющаяся <span class="term-highlight" data-tooltip="Генеративная модель - модель машинного обучения, способная генерировать новые данные, похожие на обучающую выборку. Изучает распределение данных и может создавать новые примеры из этого распределения.">генеративной моделью</span>. Она основана на принципах статистической физики и использует понятие энергии для описания состояния сети. Узлы (нейроны) машины Больцмана соединены между собой и принимают бинарные решения, взаимодействуя по весам, которые корректируются в процессе обучения методом проб и ошибок (self-learning).</p>
+                <button id="moreInfoBtn" class="more-info-btn">
+                    <span class="btn-text">Подробнее</span>
+                    <span class="btn-icon">▼</span>
+                </button>
+            </div>
+            
+            <div class="theory-details" id="theoryDetails">
+                <div class="theory-block">
+                    <h3>📊 Архитектура сети</h3>
+                    <p>Сеть состоит из двух типов узлов:</p>
+                    <ul>
+                        <li><strong>Видимые узлы</strong> — получают и представляют входные данные</li>
+                        <li><strong>Скрытые узлы</strong> — выявляют скрытые (латентные) закономерности в данных</li>
+                    </ul>
+                    <p>В отличие от классических детерминированных нейросетей, машина Больцмана работает <strong>стохастически</strong>: обучение происходит без жестко заданной схемы выхода, а оптимизация осуществляется путем минимизации энергии системы.</p>
+                </div>
+
+                <div class="theory-block">
+                    <h3>🎯 Задачи, которые решает машина Больцмана</h3>
+                    <ul>
+                        <li><strong>Обнаружение скрытых закономерностей</strong> и представление данных в виде вероятностных распределений</li>
+                        <li><strong>Генерация новых данных</strong> (например, изображений)</li>
+                        <li><strong>Распознавание образов</strong> и классификация</li>
+                        <li><strong>Комбинаторная оптимизация</strong> (например, задача коммивояжёра)</li>
+                        <li><strong>Рекомендательные системы</strong> (например, подбор фильмов — обучение без учителя)</li>
+                        <li><strong>Фильтрация данных, выявление аномалий</strong> (например, обнаружение мошенничества в финансовых транзакциях)</li>
+                        <li><strong>Снижение размерности и извлечение признаков</strong> для последующей обработки в других моделях</li>
+                    </ul>
+                    <p class="note">На практике чаще используются усовершенствованные и ограниченные варианты, такие как <strong>ограниченная машина Больцмана (RBM)</strong>, из-за сложности обучения полной версии.</p>
+                </div>
+
+                <div class="theory-block">
+                    <h3>📚 История и создатели</h3>
+                    <p>Машина Больцмана была изобретена в <strong>1985 году</strong> британским исследователем <strong>Джеффри Хинтоном</strong> (Geoffrey Hinton) совместно с Терри Сейновски и Дэвидом Акли, опираясь на идеи статистической физики и модели спинового стекла.</p>
+                    <p>Хинтон впервые представил алгоритм обучения машины Больцмана в докладе в 1983 году, а фундаментальные публикации появились в 1985 году.</p>
+                    <p class="highlight">🏆 В 2024 году Хинтон получил <strong>Нобелевскую премию по физике</strong> за свои работы, включая изобретение машины Больцмана.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <button id="trainBtn" class="train-btn">Обучить сеть</button>
+                <button id="loadBtn" class="train-btn" style="display: none; background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);">Загрузить сохраненные веса</button>
+                <label class="checkbox-container">
+                    <input type="checkbox" id="saveWeightsCheckbox" checked>
+                    <span class="checkbox-label">Сохранить веса в Local Storage</span>
+                </label>
+                <button class="mode-btn active" data-mode="sample" style="display: none;">Образец</button>
+                <button class="mode-btn" data-mode="filters" style="display: none;">Фильтры</button>
+                <div class="slider-container" id="sliderContainer" style="display: none;">
+                    <div class="slider-label">Индекс образца: <span id="indexValue">0</span></div>
+                    <input type="range" id="sampleSlider" min="0" max="1999" value="0">
+                </div>
+            </div>
+            
+            <div class="progress-container" id="progressContainer">
+                <div class="status-text" id="statusText">Инициализация...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-panel" id="infoPanel">
+            <h3>ℹ️ Начните с обучения</h3>
+            <p>Нажмите кнопку "Обучить сеть" для запуска обучения RBM на подмножестве MNIST (2000 образцов). 
+            Обучение займет около 30-60 секунд. После завершения вы сможете исследовать работу сети в двух режимах.</p>
+        </div>
+
+        <div class="visualization" id="sampleViz">
+            <div class="viz-panel">
+                <div class="viz-title">Оригинал</div>
+                <canvas id="originalCanvas" width="224" height="224"></canvas>
+            </div>
+            <div class="viz-panel">
+                <div class="viz-title">Реконструкция</div>
+                <canvas id="reconstructionCanvas" width="224" height="224"></canvas>
+                <div class="error-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">
+                            MSE:
+                            <span class="help-icon" id="mseHelpIcon">
+                                ?
+                                <div class="tooltip">
+                                    <div class="tooltip-content">
+                                        <div class="tooltip-item" data-range="excellent">
+                                            <span class="tooltip-range">&lt; 0.01</span>
+                                            <span class="tooltip-desc">отличная реконструкция</span>
+                                        </div>
+                                        <div class="tooltip-item" data-range="good">
+                                            <span class="tooltip-range">0.01-0.05</span>
+                                            <span class="tooltip-desc">хорошая реконструкция</span>
+                                        </div>
+                                        <div class="tooltip-item" data-range="poor">
+                                            <span class="tooltip-range">&gt; 0.05</span>
+                                            <span class="tooltip-desc">заметные искажения</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </span>
+                        </span>
+                        <span class="stat-value" id="mseValue">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Погрешность:</span>
+                        <span class="stat-value" id="errorPercent">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Изменено пикселей:</span>
+                        <span class="stat-value" id="pixelsDiff">-</span>
+                    </div>
+                </div>
+            </div>
+            <div class="viz-panel">
+                <div class="viz-title">Активности скрытых нейронов</div>
+                <canvas id="hiddenCanvas" width="224" height="224"></canvas>
+            </div>
+        </div>
+
+        <!-- Новый виджет анализа нейронов -->
+        <div class="neuron-analysis" id="neuronAnalysis" style="display: none;">
+            <div class="analysis-controls">
+                <div class="slider-container">
+                    <div class="slider-label">Нейрон: <span id="neuronValue">0</span> <span class="activation-badge" id="activationValue">0.00</span></div>
+                    <input type="range" id="neuronSlider" min="0" max="63" value="0">
+                </div>
+            </div>
+            <div class="analysis-panels">
+                <div class="analysis-panel">
+                    <div class="analysis-title">
+                        Фильтр нейрона
+                        <span class="help-icon">
+                            ?
+                            <div class="tooltip wide-tooltip">
+                                <div class="tooltip-content">
+                                    <div class="tooltip-header">Фильтр нейрона</div>
+                                    <div class="tooltip-text">
+                                        Чистые веса нейрона без модификаций<br>
+                                        Показывает, на какие паттерны "настроен" нейрон
+                                    </div>
+                                    <div class="tooltip-colors">
+                                        <div class="color-item">
+                                            <span style="color: #6495ED">Синий</span> = отрицательные веса
+                                        </div>
+                                        <div class="color-item">
+                                            <span style="color: #FF6B6B">Красный</span> = положительные веса
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </span>
+                    </div>
+                    <canvas id="neuronFilterCanvas" width="168" height="168"></canvas>
+                </div>
+                <div class="analysis-panel">
+                    <div class="analysis-title">
+                        Наложение на образец
+                        <span class="help-icon">
+                            ?
+                            <div class="tooltip wide-tooltip">
+                                <div class="tooltip-content">
+                                    <div class="tooltip-header">Наложение на образец</div>
+                                    <div class="tooltip-text">
+                                        Комбинация: оригинал + фильтр × активация × 0.3<br>
+                                        Показывает, как фильтр "видит" конкретный образец<br>
+                                        Видны контуры цифры с наложенным паттерном<br>
+                                        Интенсивность зависит от активации нейрона
+                                    </div>
+                                </div>
+                            </div>
+                        </span>
+                    </div>
+                    <canvas id="neuronOverlayCanvas" width="168" height="168"></canvas>
+                </div>
+                <div class="analysis-panel">
+                    <div class="analysis-title">
+                        Вклад в реконструкцию
+                        <span class="help-icon">
+                            ?
+                            <div class="tooltip wide-tooltip">
+                                <div class="tooltip-content">
+                                    <div class="tooltip-header">Вклад в реконструкцию</div>
+                                    <div class="tooltip-text">
+                                        Фактический вклад нейрона в финальную реконструкцию<br>
+                                        Черный = нейрон не активен (нет вклада)<br>
+                                        Яркие области = нейрон добавляет интенсивность<br>
+                                        Hot colormap: черный → красный → желтый → белый
+                                    </div>
+                                </div>
+                            </div>
+                        </span>
+                    </div>
+                    <canvas id="neuronContributionCanvas" width="168" height="168"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="visualization" id="filtersViz">
+            <div class="filters-explanation">
+                <h3>📊 Что такое фильтры?</h3>
+                <p>Фильтры — это визуализация весов связей между входным слоем и каждым скрытым нейроном. Каждый квадрат показывает, какие паттерны "выучил" конкретный нейрон.</p>
+                <p><strong>Как интерпретировать:</strong></p>
+                <ul>
+                    <li>Светлые области — признаки, на которые нейрон реагирует положительно</li>
+                    <li>Темные области — признаки, которые нейрон "игнорирует"</li>
+                    <li>Паттерны могут напоминать части цифр: штрихи, закругления, углы</li>
+                </ul>
+                <p>💡 <em>Наведите курсор на фильтр для увеличенного просмотра</em></p>
+            </div>
+            <div class="filters-grid" id="filtersGrid"></div>
+            <div class="filter-preview" id="filterPreview">
+                <canvas class="filter-preview-canvas" id="filterPreviewCanvas"></canvas>
+                <div class="filter-preview-title" id="filterPreviewTitle">Фильтр #0</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Глобальные переменные
+        let rbm = null;
+        let mnistData = null;
+        let currentMode = 'sample'; // Убедимся, что начальный режим правильный
+        let isTraining = false;
+
+        // Класс RBM
+        class BernoulliRBM {
+            constructor(nVisible, nHidden, learningRate = 0.06, batchSize = 32) {
+                this.nVisible = nVisible;
+                this.nHidden = nHidden;
+                this.learningRate = learningRate;
+                this.batchSize = batchSize;
+                
+                // Инициализация весов и смещений
+                this.weights = this.randomMatrix(nHidden, nVisible, 0.01);
+                this.hiddenBias = new Float32Array(nHidden);
+                this.visibleBias = new Float32Array(nVisible);
+            }
+
+            randomMatrix(rows, cols, scale) {
+                const matrix = [];
+                for (let i = 0; i < rows; i++) {
+                    matrix[i] = new Float32Array(cols);
+                    for (let j = 0; j < cols; j++) {
+                        matrix[i][j] = (Math.random() - 0.5) * 2 * scale;
+                    }
+                }
+                return matrix;
+            }
+
+            sigmoid(x) {
+                return 1 / (1 + Math.exp(-x));
+            }
+
+            sampleHidden(visible) {
+                const hidden = new Float32Array(this.nHidden);
+                for (let i = 0; i < this.nHidden; i++) {
+                    let activation = this.hiddenBias[i];
+                    for (let j = 0; j < this.nVisible; j++) {
+                        activation += visible[j] * this.weights[i][j];
+                    }
+                    hidden[i] = this.sigmoid(activation);
+                }
+                return hidden;
+            }
+
+            sampleVisible(hidden) {
+                const visible = new Float32Array(this.nVisible);
+                for (let i = 0; i < this.nVisible; i++) {
+                    let activation = this.visibleBias[i];
+                    for (let j = 0; j < this.nHidden; j++) {
+                        activation += hidden[j] * this.weights[j][i];
+                    }
+                    visible[i] = this.sigmoid(activation);
+                }
+                return visible;
+            }
+
+            contrastiveDivergence(batch) {
+                const batchSize = batch.length;
+                
+                // Градиенты
+                const weightGrad = this.randomMatrix(this.nHidden, this.nVisible, 0);
+                const hiddenGrad = new Float32Array(this.nHidden);
+                const visibleGrad = new Float32Array(this.nVisible);
+
+                for (let sample of batch) {
+                    // Positive phase
+                    const hiddenProb = this.sampleHidden(sample);
+                    
+                    // Negative phase
+                    const visibleRecon = this.sampleVisible(hiddenProb);
+                    const hiddenRecon = this.sampleHidden(visibleRecon);
+
+                    // Обновление градиентов
+                    for (let i = 0; i < this.nHidden; i++) {
+                        for (let j = 0; j < this.nVisible; j++) {
+                            weightGrad[i][j] += (hiddenProb[i] * sample[j] - hiddenRecon[i] * visibleRecon[j]) / batchSize;
+                        }
+                        hiddenGrad[i] += (hiddenProb[i] - hiddenRecon[i]) / batchSize;
+                    }
+
+                    for (let i = 0; i < this.nVisible; i++) {
+                        visibleGrad[i] += (sample[i] - visibleRecon[i]) / batchSize;
+                    }
+                }
+
+                // Обновление параметров
+                for (let i = 0; i < this.nHidden; i++) {
+                    for (let j = 0; j < this.nVisible; j++) {
+                        this.weights[i][j] += this.learningRate * weightGrad[i][j];
+                    }
+                    this.hiddenBias[i] += this.learningRate * hiddenGrad[i];
+                }
+
+                for (let i = 0; i < this.nVisible; i++) {
+                    this.visibleBias[i] += this.learningRate * visibleGrad[i];
+                }
+            }
+
+            async fit(data, nEpochs = 15, progressCallback) {
+                const nSamples = data.length;
+                const nBatches = Math.floor(nSamples / this.batchSize);
+
+                for (let epoch = 0; epoch < nEpochs; epoch++) {
+                    // Перемешивание данных
+                    const indices = Array.from({length: nSamples}, (_, i) => i);
+                    for (let i = indices.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [indices[i], indices[j]] = [indices[j], indices[i]];
+                    }
+
+                    // Обработка батчей с асинхронными паузами
+                    for (let batchIdx = 0; batchIdx < nBatches; batchIdx++) {
+                        const batch = [];
+                        for (let i = 0; i < this.batchSize; i++) {
+                            const idx = indices[batchIdx * this.batchSize + i];
+                            batch.push(data[idx]);
+                        }
+                        this.contrastiveDivergence(batch);
+                        
+                        // Даем браузеру обработать события каждые 5 батчей
+                        if (batchIdx % 5 === 0) {
+                            await new Promise(resolve => setTimeout(resolve, 0));
+                        }
+                    }
+
+                    if (progressCallback) {
+                        progressCallback(epoch + 1, nEpochs);
+                    }
+                    
+                    // Пауза между эпохами для обновления UI
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                }
+            }
+
+            reconstruct(sample) {
+                const hidden = this.sampleHidden(sample);
+                const reconstruction = this.sampleVisible(hidden);
+                return { reconstruction, hidden };
+            }
+
+            // Сохранение весов в Local Storage
+            saveToLocalStorage() {
+                const data = {
+                    nVisible: this.nVisible,
+                    nHidden: this.nHidden,
+                    weights: this.weights.map(row => Array.from(row)),
+                    hiddenBias: Array.from(this.hiddenBias),
+                    visibleBias: Array.from(this.visibleBias),
+                    timestamp: Date.now()
+                };
+                
+                try {
+                    const compressed = JSON.stringify(data);
+                    localStorage.setItem('rbm_weights', compressed);
+                    console.log('✅ Веса успешно сохранены в Local Storage');
+                    return true;
+                } catch (e) {
+                    console.error('❌ Ошибка сохранения весов:', e);
+                    return false;
+                }
+            }
+
+            // Загрузка весов из Local Storage
+            static loadFromLocalStorage() {
+                try {
+                    const compressed = localStorage.getItem('rbm_weights');
+                    if (!compressed) return null;
+                    
+                    const data = JSON.parse(compressed);
+                    const rbm = new BernoulliRBM(data.nVisible, data.nHidden);
+                    
+                    // Восстанавливаем веса
+                    rbm.weights = data.weights.map(row => new Float32Array(row));
+                    rbm.hiddenBias = new Float32Array(data.hiddenBias);
+                    rbm.visibleBias = new Float32Array(data.visibleBias);
+                    
+                    console.log('✅ Веса успешно загружены из Local Storage');
+                    return rbm;
+                } catch (e) {
+                    console.error('❌ Ошибка загрузки весов:', e);
+                    return null;
+                }
+            }
+        }
+
+        // Генерация реалистичной цифры
+        function generateDigit(digit, variation = 0) {
+            const canvas = new Float32Array(784);
+            
+            // Параметры для вариации
+            const angle = (variation * 0.1 - 0.5) * 0.3; // Наклон
+            const thickness = 1.5 + variation * 0.2; // Толщина линии
+            const offsetX = (variation * 0.2 - 0.1) * 4; // Смещение по X
+            const offsetY = (variation * 0.2 - 0.1) * 4; // Смещение по Y
+            
+            // Функция для рисования линии
+            function drawLine(x1, y1, x2, y2, intensity = 1.0) {
+                const steps = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1)) * 2;
+                for (let i = 0; i <= steps; i++) {
+                    const t = i / steps;
+                    const x = x1 + (x2 - x1) * t;
+                    const y = y1 + (y2 - y1) * t;
+                    
+                    // Применяем поворот
+                    const xRot = (x - 14) * Math.cos(angle) - (y - 14) * Math.sin(angle) + 14 + offsetX;
+                    const yRot = (x - 14) * Math.sin(angle) + (y - 14) * Math.cos(angle) + 14 + offsetY;
+                    
+                    // Рисуем точку с размытием
+                    for (let dy = -2; dy <= 2; dy++) {
+                        for (let dx = -2; dx <= 2; dx++) {
+                            const px = Math.round(xRot + dx);
+                            const py = Math.round(yRot + dy);
+                            if (px >= 0 && px < 28 && py >= 0 && py < 28) {
+                                const dist = Math.sqrt(dx * dx + dy * dy);
+                                const value = Math.exp(-dist * dist / (thickness * thickness)) * intensity;
+                                canvas[py * 28 + px] = Math.min(1, canvas[py * 28 + px] + value);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Функция для рисования эллипса
+            function drawEllipse(cx, cy, rx, ry, intensity = 1.0, filled = false) {
+                for (let angle = 0; angle < Math.PI * 2; angle += 0.05) {
+                    const x = cx + rx * Math.cos(angle);
+                    const y = cy + ry * Math.sin(angle);
+                    const nextX = cx + rx * Math.cos(angle + 0.05);
+                    const nextY = cy + ry * Math.sin(angle + 0.05);
+                    drawLine(x, y, nextX, nextY, intensity);
+                }
+                if (filled) {
+                    for (let y = cy - ry; y <= cy + ry; y += 0.5) {
+                        for (let x = cx - rx; x <= cx + rx; x += 0.5) {
+                            if ((x - cx) * (x - cx) / (rx * rx) + (y - cy) * (y - cy) / (ry * ry) <= 1) {
+                                const px = Math.round(x);
+                                const py = Math.round(y);
+                                if (px >= 0 && px < 28 && py >= 0 && py < 28) {
+                                    canvas[py * 28 + px] = Math.min(1, canvas[py * 28 + px] + intensity * 0.3);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Рисуем разные цифры
+            switch(digit) {
+                case 0:
+                    drawEllipse(14, 14, 5, 7, 0.9);
+                    break;
+                    
+                case 1:
+                    drawLine(14, 6, 14, 22, 0.9);
+                    drawLine(14, 6, 11, 9, 0.7);
+                    break;
+                    
+                case 2:
+                    drawLine(9, 10, 13, 6, 0.8);
+                    drawLine(13, 6, 17, 8, 0.8);
+                    drawLine(17, 8, 14, 14, 0.8);
+                    drawLine(14, 14, 9, 22, 0.8);
+                    drawLine(9, 22, 19, 22, 0.8);
+                    break;
+                    
+                case 3:
+                    drawLine(9, 8, 17, 8, 0.8);
+                    drawLine(17, 8, 13, 14, 0.8);
+                    drawLine(13, 14, 17, 14, 0.7);
+                    drawLine(17, 14, 17, 18, 0.8);
+                    drawLine(17, 18, 13, 22, 0.8);
+                    drawLine(13, 22, 9, 20, 0.8);
+                    break;
+                    
+                case 4:
+                    drawLine(16, 6, 10, 16, 0.8);
+                    drawLine(10, 16, 20, 16, 0.8);
+                    drawLine(16, 6, 16, 22, 0.9);
+                    break;
+                    
+                case 5:
+                    drawLine(18, 8, 10, 8, 0.8);
+                    drawLine(10, 8, 10, 14, 0.8);
+                    drawLine(10, 14, 16, 12, 0.8);
+                    drawLine(16, 12, 18, 14, 0.8);
+                    drawLine(18, 14, 18, 18, 0.8);
+                    drawLine(18, 18, 14, 22, 0.8);
+                    drawLine(14, 22, 9, 21, 0.8);
+                    break;
+                    
+                case 6:
+                    drawLine(16, 8, 12, 8, 0.8);
+                    drawLine(12, 8, 10, 14, 0.8);
+                    drawLine(10, 14, 10, 18, 0.8);
+                    drawLine(10, 18, 14, 22, 0.8);
+                    drawLine(14, 22, 18, 18, 0.8);
+                    drawLine(18, 18, 18, 15, 0.8);
+                    drawLine(18, 15, 14, 14, 0.8);
+                    drawLine(14, 14, 10, 15, 0.8);
+                    break;
+                    
+                case 7:
+                    drawLine(9, 8, 19, 8, 0.9);
+                    drawLine(19, 8, 14, 22, 0.9);
+                    drawLine(12, 14, 16, 14, 0.5);
+                    break;
+                    
+                case 8:
+                    drawEllipse(14, 10, 4, 4, 0.8);
+                    drawEllipse(14, 18, 4.5, 4, 0.8);
+                    break;
+                    
+                case 9:
+                    drawEllipse(14, 11, 4, 4, 0.8);
+                    drawLine(18, 11, 18, 16, 0.8);
+                    drawLine(18, 16, 16, 20, 0.8);
+                    drawLine(16, 20, 12, 21, 0.8);
+                    break;
+            }
+            
+            // Добавляем легкий шум и размытие
+            const blurred = new Float32Array(784);
+            for (let y = 0; y < 28; y++) {
+                for (let x = 0; x < 28; x++) {
+                    let sum = 0;
+                    let count = 0;
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            const ny = y + dy;
+                            const nx = x + dx;
+                            if (ny >= 0 && ny < 28 && nx >= 0 && nx < 28) {
+                                const weight = (dx === 0 && dy === 0) ? 4 : 1;
+                                sum += canvas[ny * 28 + nx] * weight;
+                                count += weight;
+                            }
+                        }
+                    }
+                    blurred[y * 28 + x] = sum / count;
+                    
+                    // Добавляем легкий шум
+                    blurred[y * 28 + x] += (Math.random() - 0.5) * 0.05;
+                    blurred[y * 28 + x] = Math.max(0, Math.min(1, blurred[y * 28 + x]));
+                }
+            }
+            
+            return blurred;
+        }
+
+        // Загрузка подмножества MNIST
+        async function loadMNIST() {
+            const nSamples = 2000;
+            const data = [];
+            
+            // Генерируем по 200 образцов каждой цифры с вариациями
+            for (let i = 0; i < nSamples; i++) {
+                const digit = Math.floor(i / 200); // 200 образцов на цифру
+                const variation = (i % 200) / 200; // Вариация от 0 до 1
+                
+                // Добавляем случайность к вариации
+                const randomVariation = variation + Math.random() * 0.1;
+                
+                const sample = generateDigit(digit, randomVariation);
+                data.push(sample);
+            }
+            
+            // Перемешиваем данные
+            for (let i = data.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [data[i], data[j]] = [data[j], data[i]];
+            }
+            
+            return data;
+        }
+
+        // Отрисовка на canvas
+        function drawImage(canvas, data, width, height) {
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const scale = canvas.width / width;
+            
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    const srcX = Math.floor(x / scale);
+                    const srcY = Math.floor(y / scale);
+                    const value = data[srcY * width + srcX] * 255;
+                    const idx = (y * canvas.width + x) * 4;
+                    
+                    imageData.data[idx] = value;
+                    imageData.data[idx + 1] = value;
+                    imageData.data[idx + 2] = value;
+                    imageData.data[idx + 3] = 255;
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        // Отрисовка изображения с цветовой схемой
+        function drawImageColored(canvas, data, width, height, colormap = 'gray') {
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const scale = canvas.width / width;
+            
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    const srcX = Math.floor(x / scale);
+                    const srcY = Math.floor(y / scale);
+                    const value = data[srcY * width + srcX];
+                    const idx = (y * canvas.width + x) * 4;
+                    
+                    if (colormap === 'bwr') {
+                        // Blue-White-Red colormap
+                        const normalized = Math.max(-1, Math.min(1, value));
+                        if (normalized < 0) {
+                            // Blue to white
+                            const intensity = Math.abs(normalized);
+                            imageData.data[idx] = 255 * (1 - intensity);
+                            imageData.data[idx + 1] = 255 * (1 - intensity);
+                            imageData.data[idx + 2] = 255;
+                        } else {
+                            // White to red
+                            const intensity = normalized;
+                            imageData.data[idx] = 255;
+                            imageData.data[idx + 1] = 255 * (1 - intensity);
+                            imageData.data[idx + 2] = 255 * (1 - intensity);
+                        }
+                    } else if (colormap === 'hot') {
+                        // Hot colormap
+                        const v = Math.max(0, Math.min(1, value));
+                        if (v < 0.33) {
+                            imageData.data[idx] = v * 3 * 255;
+                            imageData.data[idx + 1] = 0;
+                            imageData.data[idx + 2] = 0;
+                        } else if (v < 0.66) {
+                            imageData.data[idx] = 255;
+                            imageData.data[idx + 1] = (v - 0.33) * 3 * 255;
+                            imageData.data[idx + 2] = 0;
+                        } else {
+                            imageData.data[idx] = 255;
+                            imageData.data[idx + 1] = 255;
+                            imageData.data[idx + 2] = (v - 0.66) * 3 * 255;
+                        }
+                    } else {
+                        // Grayscale
+                        const grayValue = value * 255;
+                        imageData.data[idx] = grayValue;
+                        imageData.data[idx + 1] = grayValue;
+                        imageData.data[idx + 2] = grayValue;
+                    }
+                    imageData.data[idx + 3] = 255;
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        // Обучение сети
+        async function trainNetwork() {
+            if (isTraining) return;
+            
+            isTraining = true;
+            const trainBtn = document.getElementById('trainBtn');
+            const progressContainer = document.getElementById('progressContainer');
+            const statusText = document.getElementById('statusText');
+            const progressFill = document.getElementById('progressFill');
+            const infoPanel = document.getElementById('infoPanel');
+            
+            trainBtn.disabled = true;
+            progressContainer.classList.add('active');
+            infoPanel.style.display = 'none';
+            
+            statusText.textContent = 'Загрузка данных...';
+            progressFill.style.width = '0%';
+            
+            // Даем UI обновиться
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Загрузка данных
+            mnistData = await loadMNIST();
+            
+            statusText.textContent = 'Инициализация RBM...';
+            progressFill.style.width = '10%';
+            
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Создание и обучение RBM
+            rbm = new BernoulliRBM(784, 64, 0.06, 32);
+            
+            statusText.textContent = 'Обучение сети...';
+            
+            // Обучение с колбэком для прогресса
+            await rbm.fit(mnistData, 15, (epoch, totalEpochs) => {
+                const progress = 10 + (epoch / totalEpochs) * 90;
+                progressFill.style.width = progress + '%';
+                statusText.textContent = `Обучение сети... Эпоха ${epoch}/${totalEpochs}`;
+            });
+            
+            statusText.textContent = 'Обучение завершено!';
+            progressFill.style.width = '100%';
+            
+            setTimeout(() => {
+                progressContainer.classList.remove('active');
+                trainBtn.textContent = 'Переобучить сеть';
+                trainBtn.disabled = false;
+                isTraining = false;
+                
+                // Активируем визуализацию
+                enableVisualization();
+                updateVisualization();
+            }, 1000);
+        }
+
+        // Активация визуализации
+        function enableVisualization() {
+            // Показываем кнопки режимов
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.style.display = 'block';
+            });
+            
+            const sliderContainer = document.getElementById('sliderContainer');
+            const neuronAnalysis = document.getElementById('neuronAnalysis');
+            
+            console.log('enableVisualization called, currentMode:', currentMode); // Отладка
+            
+            if (currentMode === 'sample') {
+                document.getElementById('sampleViz').classList.add('active');
+                document.getElementById('filtersViz').classList.remove('active');
+                if (neuronAnalysis) {
+                    neuronAnalysis.style.display = 'block';
+                    console.log('Showing neuron widget in enableVisualization');
+                }
+                sliderContainer.style.display = 'block';
+                updateVisualization();
+            } else {
+                document.getElementById('filtersViz').classList.add('active');
+                document.getElementById('sampleViz').classList.remove('active');
+                if (neuronAnalysis) {
+                    neuronAnalysis.style.display = 'none';
+                    console.log('Hiding neuron widget in enableVisualization');
+                }
+                sliderContainer.style.display = 'none';
+                drawFilters();
+            }
+        }
+
+        // Обновление подсветки диапазона MSE в тултипе
+        function updateMSETooltip(mseValue) {
+            const tooltipItems = document.querySelectorAll('.tooltip-item');
+            tooltipItems.forEach(item => item.classList.remove('active'));
+            
+            if (mseValue < 0.01) {
+                document.querySelector('.tooltip-item[data-range="excellent"]').classList.add('active');
+            } else if (mseValue <= 0.05) {
+                document.querySelector('.tooltip-item[data-range="good"]').classList.add('active');
+            } else {
+                document.querySelector('.tooltip-item[data-range="poor"]').classList.add('active');
+            }
+        }
+
+        // Вычисление метрик ошибки
+        function calculateErrorMetrics(original, reconstruction) {
+            let mse = 0;
+            let pixelsDifferent = 0;
+            const threshold = 0.1; // Порог для определения "измененного" пикселя
+            
+            for (let i = 0; i < original.length; i++) {
+                const diff = original[i] - reconstruction[i];
+                mse += diff * diff;
+                
+                if (Math.abs(diff) > threshold) {
+                    pixelsDifferent++;
+                }
+            }
+            
+            mse = mse / original.length;
+            const errorPercent = (Math.sqrt(mse) * 100).toFixed(2);
+            const pixelsDiffPercent = ((pixelsDifferent / original.length) * 100).toFixed(1);
+            
+            // Обновляем подсветку в тултипе
+            updateMSETooltip(mse);
+            
+            return {
+                mse: mse.toFixed(6),
+                errorPercent: errorPercent + '%',
+                pixelsDiff: `${pixelsDifferent}/784 (${pixelsDiffPercent}%)`
+            };
+        }
+
+        // Анализ влияния нейрона
+        function analyzeNeuron() {
+            if (!rbm || !mnistData) {
+                console.log('RBM или данные не загружены');
+                return;
+            }
+            
+            const sampleIndex = parseInt(document.getElementById('sampleSlider').value);
+            const neuronIndex = parseInt(document.getElementById('neuronSlider').value);
+            const sample = mnistData[sampleIndex];
+            
+            console.log(`Анализируем нейрон ${neuronIndex} для образца ${sampleIndex}`);
+            
+            // Получаем активации скрытого слоя
+            const { reconstruction, hidden } = rbm.reconstruct(sample);
+            const activation = hidden[neuronIndex];
+            
+            // Обновляем отображение активации
+            document.getElementById('neuronValue').textContent = neuronIndex;
+            document.getElementById('activationValue').textContent = activation.toFixed(3);
+            
+            // 1. Фильтр нейрона (веса) - нормализуем для BWR colormap
+            const filter = new Float32Array(784);
+            let maxAbs = 0;
+            for (let i = 0; i < 784; i++) {
+                filter[i] = rbm.weights[neuronIndex][i];
+                maxAbs = Math.max(maxAbs, Math.abs(filter[i]));
+            }
+            // Нормализация в диапазон [-1, 1]
+            if (maxAbs > 0) {
+                for (let i = 0; i < 784; i++) {
+                    filter[i] = filter[i] / maxAbs;
+                }
+            }
+            
+            // 2. Наложение фильтра на образец (как в Python: image + 0.5 * weights)
+            const overlay = new Float32Array(784);
+            for (let i = 0; i < 784; i++) {
+                // Комбинируем оригинал с фильтром, учитывая активацию
+                overlay[i] = sample[i] + filter[i] * activation * 0.3;
+                // Нормализуем для BWR визуализации
+                overlay[i] = Math.max(-1, Math.min(1, overlay[i]));
+            }
+            
+            // 3. Вклад нейрона в реконструкцию
+            // ИСПРАВЛЕНО: если активация = 0, то и вклад = 0
+            const contribution = new Float32Array(784);
+            
+            if (activation > 0.01) { // Порог для избежания шума
+                for (let i = 0; i < 784; i++) {
+                    // Реальный вклад: веса нейрона × его активация
+                    contribution[i] = rbm.weights[neuronIndex][i] * activation;
+                    // Нормализуем в диапазон [0, 1] для визуализации
+                    contribution[i] = Math.abs(contribution[i]);
+                }
+                
+                // Нормализация для лучшей визуализации
+                let maxContrib = 0;
+                for (let i = 0; i < 784; i++) {
+                    maxContrib = Math.max(maxContrib, contribution[i]);
+                }
+                if (maxContrib > 0) {
+                    for (let i = 0; i < 784; i++) {
+                        contribution[i] = contribution[i] / maxContrib;
+                    }
+                }
+            }
+            // Если activation близка к 0, contribution остается массивом нулей (черное изображение)
+            
+            // Отрисовка
+            const filterCanvas = document.getElementById('neuronFilterCanvas');
+            const overlayCanvas = document.getElementById('neuronOverlayCanvas');
+            const contributionCanvas = document.getElementById('neuronContributionCanvas');
+            
+            if (filterCanvas && overlayCanvas && contributionCanvas) {
+                drawImageColored(filterCanvas, filter, 28, 28, 'bwr');
+                drawImageColored(overlayCanvas, overlay, 28, 28, 'bwr');
+                drawImageColored(contributionCanvas, contribution, 28, 28, 'hot');
+                console.log('Визуализации обновлены');
+            } else {
+                console.log('Canvas элементы не найдены');
+            }
+        }
+
+        // Обновление визуализации
+        function updateVisualization() {
+            if (!rbm || !mnistData) return;
+            
+            if (currentMode === 'sample') {
+                const index = parseInt(document.getElementById('sampleSlider').value);
+                const sample = mnistData[index];
+                const { reconstruction, hidden } = rbm.reconstruct(sample);
+                
+                // Отрисовка оригинала
+                drawImage(document.getElementById('originalCanvas'), sample, 28, 28);
+                
+                // Отрисовка реконструкции
+                drawImage(document.getElementById('reconstructionCanvas'), reconstruction, 28, 28);
+                
+                // Отрисовка активностей скрытых нейронов
+                drawImage(document.getElementById('hiddenCanvas'), hidden, 8, 8);
+                
+                // Вычисление и отображение метрик ошибки
+                const metrics = calculateErrorMetrics(sample, reconstruction);
+                document.getElementById('mseValue').textContent = metrics.mse;
+                document.getElementById('errorPercent').textContent = metrics.errorPercent;
+                document.getElementById('pixelsDiff').textContent = metrics.pixelsDiff;
+                
+                // Обновляем анализ нейрона
+                analyzeNeuron();
+            }
+        }
+
+        // Отрисовка фильтров
+        function drawFilters() {
+            if (!rbm) return;
+            
+            const filtersGrid = document.getElementById('filtersGrid');
+            filtersGrid.innerHTML = '';
+            
+            for (let i = 0; i < 64; i++) {
+                const filterItem = document.createElement('div');
+                filterItem.className = 'filter-item';
+                filterItem.dataset.filterIndex = i;
+                
+                const canvas = document.createElement('canvas');
+                canvas.className = 'filter-canvas';
+                canvas.width = 56;
+                canvas.height = 56;
+                
+                // Нормализация весов для визуализации
+                const filter = new Float32Array(784);
+                let min = Infinity, max = -Infinity;
+                
+                for (let j = 0; j < 784; j++) {
+                    filter[j] = rbm.weights[i][j];
+                    min = Math.min(min, filter[j]);
+                    max = Math.max(max, filter[j]);
+                }
+                
+                // Нормализация в диапазон [0, 1]
+                const range = max - min;
+                for (let j = 0; j < 784; j++) {
+                    filter[j] = (filter[j] - min) / range;
+                }
+                
+                drawImage(canvas, filter, 28, 28);
+                filterItem.appendChild(canvas);
+                
+                // Добавляем обработчики для превью
+                filterItem.addEventListener('mouseenter', (e) => showFilterPreview(e, i, filter));
+                filterItem.addEventListener('mousemove', (e) => updatePreviewPosition(e));
+                filterItem.addEventListener('mouseleave', hideFilterPreview);
+                
+                filtersGrid.appendChild(filterItem);
+            }
+        }
+
+        // Показ увеличенного превью фильтра
+        function showFilterPreview(e, index, filterData) {
+            const preview = document.getElementById('filterPreview');
+            const canvas = document.getElementById('filterPreviewCanvas');
+            const title = document.getElementById('filterPreviewTitle');
+            
+            drawImage(canvas, filterData, 28, 28);
+            title.textContent = `Фильтр #${index + 1}`;
+            
+            preview.classList.add('active');
+            updatePreviewPosition(e);
+        }
+
+        // Обновление позиции превью
+        function updatePreviewPosition(e) {
+            const preview = document.getElementById('filterPreview');
+            if (!preview.classList.contains('active')) return;
+            
+            const x = e.clientX;
+            const y = e.clientY;
+            const previewWidth = 254; // 224px canvas + padding
+            const previewHeight = 280; // canvas + title + padding
+            
+            // Определяем оптимальную позицию
+            let left = x + 20;
+            let top = y - previewHeight / 2;
+            
+            // Проверяем границы экрана
+            if (left + previewWidth > window.innerWidth) {
+                left = x - previewWidth - 20;
+            }
+            if (top < 10) {
+                top = 10;
+            }
+            if (top + previewHeight > window.innerHeight - 10) {
+                top = window.innerHeight - previewHeight - 10;
+            }
+            
+            preview.style.left = left + 'px';
+            preview.style.top = top + 'px';
+        }
+
+        // Скрытие превью
+        function hideFilterPreview() {
+            const preview = document.getElementById('filterPreview');
+            preview.classList.remove('active');
+        }
+
+        // Проверка наличия сохраненных весов
+        function checkSavedWeights() {
+            const loadBtn = document.getElementById('loadBtn');
+            const savedWeights = localStorage.getItem('rbm_weights');
+            
+            if (savedWeights && !rbm) {
+                loadBtn.style.display = 'inline-block';
+            } else {
+                loadBtn.style.display = 'none';
+            }
+        }
+
+        // Обработчики событий
+        document.getElementById('trainBtn').addEventListener('click', trainNetwork);
+
+        document.getElementById('sampleSlider').addEventListener('input', (e) => {
+            document.getElementById('indexValue').textContent = e.target.value;
+            updateVisualization();
+        });
+
+        // Добавляем обработчик для слайдера выбора нейрона
+        document.getElementById('neuronSlider').addEventListener('input', (e) => {
+            console.log('Neuron slider changed to:', e.target.value);
+            document.getElementById('neuronValue').textContent = e.target.value;
+            if (rbm && mnistData) {
+                analyzeNeuron();
+            }
+        });
+
+        // Добавляем обработчик для кнопки "Подробнее"
+        document.getElementById('moreInfoBtn').addEventListener('click', () => {
+            const btn = document.getElementById('moreInfoBtn');
+            const details = document.getElementById('theoryDetails');
+            const btnText = btn.querySelector('.btn-text');
+            
+            btn.classList.toggle('active');
+            details.classList.toggle('active');
+            
+            if (btn.classList.contains('active')) {
+                btnText.textContent = 'Скрыть';
+            } else {
+                btnText.textContent = 'Подробнее';
+            }
+        });
+
+        // Переключение режимов
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (!rbm || isTraining) return;
+                
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                currentMode = btn.dataset.mode;
+                
+                // Скрыть все визуализации
+                document.querySelectorAll('.visualization').forEach(v => v.classList.remove('active'));
+                
+                // Показать нужную визуализацию
+                if (currentMode === 'sample') {
+                    document.getElementById('sampleViz').classList.add('active');
+                    document.getElementById('sliderContainer').style.display = 'block';
+                    document.getElementById('neuronAnalysis').style.display = 'block';  // Показываем виджет анализа
+                    updateVisualization();
+                } else {
+                    document.getElementById('filtersViz').classList.add('active');
+                    document.getElementById('sliderContainer').style.display = 'none';
+                    document.getElementById('neuronAnalysis').style.display = 'none';  // ДОБАВЛЕНО: Скрываем виджет анализа
+                    drawFilters();
+                }
+            });
+        });
+
+        // Инициализация
+        console.log('🧠 Машина Больцмана готова к работе!');
+        
+        // Проверяем наличие сохраненных весов при загрузке
+        checkSavedWeights();
+    </script>
+</body>
+</html>
