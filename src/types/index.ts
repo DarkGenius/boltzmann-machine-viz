@@ -29,3 +29,10 @@ export interface TermDefinition {
   term: string;
   definition: string;
 }
+
+export interface MNISTSample {
+  label: number;
+  pixels: number[];
+}
+
+export type DataSource = 'generated' | 'mnist';

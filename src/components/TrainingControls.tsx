@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import type { TrainingProgress } from '../types';
+import type { TrainingProgress, DataSource } from '../types';
 import { ProgressBar } from './ProgressBar';
 
 interface TrainingControlsProps {
   onTrain: () => void;
   onLoadSaved: () => void;
   onSaveWeightsToggle: (enabled: boolean) => void;
+  onDataSourceToggle: (dataSource: DataSource) => void;
   isTraining: boolean;
   trainingProgress: TrainingProgress | null;
 }
@@ -14,10 +15,12 @@ export function TrainingControls({
   onTrain,
   onLoadSaved,
   onSaveWeightsToggle,
+  onDataSourceToggle,
   isTraining,
   trainingProgress
 }: TrainingControlsProps) {
   const [saveWeights, setSaveWeights] = useState(true);
+  const [useRealMNIST, setUseRealMNIST] = useState(false);
   const [hasSavedWeights, setHasSavedWeights] = useState(false);
 
   useEffect(() => {
@@ -30,8 +33,16 @@ export function TrainingControls({
     onSaveWeightsToggle(saveWeights);
   }, [saveWeights, onSaveWeightsToggle]);
 
+  useEffect(() => {
+    onDataSourceToggle(useRealMNIST ? 'mnist' : 'generated');
+  }, [useRealMNIST, onDataSourceToggle]);
+
   const handleSaveWeightsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSaveWeights(e.target.checked);
+  };
+
+  const handleDataSourceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUseRealMNIST(e.target.checked);
   };
 
   return (
@@ -53,6 +64,16 @@ export function TrainingControls({
             Загрузить сохраненные веса
           </button>
         )}
+
+        <label className="checkbox-container">
+          <input
+            type="checkbox"
+            checked={useRealMNIST}
+            onChange={handleDataSourceChange}
+            disabled={isTraining}
+          />
+          <span className="checkbox-label">Использовать реальные данные MNIST</span>
+        </label>
 
         <label className="checkbox-container">
           <input

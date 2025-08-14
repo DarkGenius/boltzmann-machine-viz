@@ -189,5 +189,16 @@ export async function loadMNIST(): Promise<Float32Array[]> {
     [data[i], data[j]] = [data[j], data[i]];
   }
   
+  // Отладочная информация
+  if (data.length > 0) {
+    const firstSample = data[0];
+    const nonZeroPixels = Array.from(firstSample).filter(p => p > 0).length;
+    const maxValue = Math.max(...Array.from(firstSample));
+    const minValue = Math.min(...Array.from(firstSample));
+    
+    console.log(`✅ Сгенерировано ${data.length} синтетических образцов MNIST`);
+    console.log(`📊 Первый образец: ${nonZeroPixels}/784 ненулевых пикселей, диапазон [${minValue.toFixed(3)}, ${maxValue.toFixed(3)}]`);
+  }
+  
   return data;
 }

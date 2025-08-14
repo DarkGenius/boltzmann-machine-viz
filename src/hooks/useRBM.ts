@@ -1,24 +1,38 @@
 import { useState, useCallback, useRef } from 'react';
 import { BernoulliRBM } from '../ml/BernoulliRBM';
-import type { TrainingProgress } from '../types';
+import type { TrainingProgress, DataSource } from '../types';
 import { loadMNIST } from '../utils/mnistGenerator';
+import { loadRealMNIST } from '../utils/mnistLoader';
 
 export function useRBM() {
   const [rbm, setRBM] = useState<BernoulliRBM | null>(null);
   const [mnistData, setMnistData] = useState<Float32Array[] | null>(null);
   const [isTraining, setIsTraining] = useState(false);
   const [trainingProgress, setTrainingProgress] = useState<TrainingProgress | null>(null);
+  const [dataSource, setDataSource] = useState<DataSource>('generated');
 
   const abortController = useRef<AbortController | null>(null);
 
-  const loadData = useCallback(async () => {
-    if (!mnistData) {
-      const data = await loadMNIST();
+  const loadData = useCallback(async (forceReload = false) => {
+    if (!mnistData || forceReload) {
+      let data: Float32Array[];
+      
+      if (dataSource === 'mnist') {
+        try {
+          data = await loadRealMNIST();
+        } catch (error) {
+          console.error('Переключение на сгенерированные данные из-за ошибки:', error);
+          data = await loadMNIST();
+        }
+      } else {
+        data = await loadMNIST();
+      }
+      
       setMnistData(data);
       return data;
     }
     return mnistData;
-  }, [mnistData]);
+  }, [mnistData, dataSource]);
 
   const trainNetwork = useCallback(async () => {
     if (isTraining) return;
@@ -34,7 +48,7 @@ export function useRBM() {
         status: 'Загрузка данных...'
       });
 
-      const data = await loadData();
+      const data = await loadData(true); // Принудительная перезагрузка при смене источника
       
       if (abortController.current?.signal.aborted) return;
 
@@ -100,9 +114,14 @@ export function useRBM() {
     const loadedRBM = BernoulliRBM.loadFromLocalStorage();
     if (loadedRBM) {
       setRBM(loadedRBM);
-      loadData();
+      loadData(true);
     }
   }, [loadData]);
+
+  const handleDataSourceChange = useCallback((newDataSource: DataSource) => {
+    setDataSource(newDataSource);
+    setMnistData(null); // Очищаем кеш данных при смене источника
+  }, []);
 
   const stopTraining = useCallback(() => {
     if (abortController.current) {
@@ -117,9 +136,11 @@ export function useRBM() {
     mnistData,
     isTraining,
     trainingProgress,
+    dataSource,
     trainNetwork,
     loadSavedWeights,
     stopTraining,
-    loadData
+    loadData,
+    handleDataSourceChange
   };
 }
