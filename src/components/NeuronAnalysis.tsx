@@ -108,10 +108,10 @@ export function NeuronAnalysis({ rbm, sample, hiddenActivations }: NeuronAnalysi
                   </div>
                   <div className="tooltip-colors">
                     <div className="color-item">
-                      <span style={{ color: '#6495ED' }}>Синий</span> = отрицательные веса
+                      <span style={{ color: '#6495ED' }}>Синий</span>&nbsp;=&nbsp;отрицательные веса
                     </div>
                     <div className="color-item">
-                      <span style={{ color: '#FF6B6B' }}>Красный</span> = положительные веса
+                      <span style={{ color: '#FF6B6B' }}>Красный</span>&nbsp;=&nbsp;положительные веса
                     </div>
                   </div>
                 </div>
