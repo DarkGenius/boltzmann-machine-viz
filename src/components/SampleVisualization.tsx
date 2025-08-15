@@ -74,8 +74,8 @@ export function SampleVisualization({ rbm, data }: SampleVisualizationProps) {
           <div className="viz-title">Оригинал</div>
           <canvas
             ref={originalCanvasRef}
-            width="224"
-            height="224"
+            width="256"
+            height="256"
           />
         </div>
 
@@ -83,8 +83,8 @@ export function SampleVisualization({ rbm, data }: SampleVisualizationProps) {
           <div className="viz-title">Реконструкция</div>
           <canvas
             ref={reconstructionCanvasRef}
-            width="224"
-            height="224"
+            width="256"
+            height="256"
           />
           {errorMetrics && (
             <ErrorStats 
@@ -98,8 +98,8 @@ export function SampleVisualization({ rbm, data }: SampleVisualizationProps) {
           <div className="viz-title">Активности скрытых нейронов</div>
           <canvas
             ref={hiddenCanvasRef}
-            width="224"
-            height="224"
+            width="256"
+            height="256"
           />
         </div>
       </div>

@@ -93,7 +93,7 @@ export function FiltersVisualization({ rbm }: FiltersVisualizationProps) {
   const updatePreviewPosition = (e: MouseEvent) => {
     const x = e.clientX;
     const y = e.clientY;
-    const previewWidth = 254; // 224px canvas + padding
+    const previewWidth = 286; // 256px canvas + padding
     const previewHeight = 280; // canvas + title + padding
     
     // Определяем оптимальную позицию
@@ -144,8 +144,8 @@ export function FiltersVisualization({ rbm }: FiltersVisualizationProps) {
           <canvas 
             ref={previewCanvasRef}
             className="filter-preview-canvas" 
-            width="224"
-            height="224"
+            width="256"
+            height="256"
           />
           <div className="filter-preview-title">
             Фильтр #{previewFilter + 1}
