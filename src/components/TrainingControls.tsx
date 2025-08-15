@@ -72,7 +72,15 @@ export function TrainingControls({
             onChange={handleDataSourceChange}
             disabled={isTraining}
           />
-          <span className="checkbox-label">Использовать реальные данные MNIST</span>
+          <span className="checkbox-label">
+            Использовать реальные данные{' '}
+            <span 
+              className="term-highlight" 
+              data-tooltip="MNIST (Modified National Institute of Standards and Technology) — стандартный датасет для машинного обучения, содержащий 70,000 изображений рукописных цифр от 0 до 9. Каждое изображение имеет размер 28×28 пикселей в оттенках серого."
+            >
+              MNIST
+            </span>
+          </span>
         </label>
 
         <label className="checkbox-container">

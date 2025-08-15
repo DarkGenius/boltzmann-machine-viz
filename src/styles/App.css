@@ -11,6 +11,7 @@ body {
   min-height: 100vh;
   padding: 20px;
   overflow-x: hidden;
+  position: relative;
 }
 
 .container {
@@ -70,6 +71,12 @@ h1 {
 .term-highlight:hover::after {
   opacity: 1;
   visibility: visible;
+}
+
+/* Ensure tooltips are not clipped by containers */
+.checkbox-container .term-highlight::after {
+  position: absolute;
+  z-index: 100000;
 }
 
 /* Theory Section */
@@ -267,6 +274,41 @@ button {
   height: 18px;
   cursor: pointer;
   accent-color: #3b82f6;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  border-radius: 4px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.checkbox-container input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  border-color: #3b82f6;
+}
+
+.checkbox-container input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.checkbox-container input[type="checkbox"]:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.checkbox-container input[type="checkbox"]:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .checkbox-label {
@@ -739,6 +781,39 @@ canvas {
   font-size: 14px;
   margin-left: 20px;
   line-height: 1.6;
+}
+
+/* Hidden Neurons Explanation */
+.hidden-neurons-explanation {
+  margin-top: 15px;
+  padding: 12px;
+  background: rgba(59, 130, 246, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+.hidden-neurons-explanation p {
+  margin: 0 0 8px 0;
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.hidden-neurons-explanation ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #64748b;
+}
+
+.hidden-neurons-explanation li {
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.hidden-neurons-explanation li:last-child {
+  margin-bottom: 0;
 }
 
 /* Info Panel */
