@@ -31,3 +31,6 @@ Thumbs.db
 
 # Claude files
 .claude
+
+# local work
+.drafts/
