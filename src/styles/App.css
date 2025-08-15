@@ -233,6 +233,47 @@ h1 {
   position: relative;
 }
 
+.setting-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.setting-label {
+  font-weight: 600;
+  color: #475569;
+  font-size: 14px;
+}
+
+.method-select {
+  padding: 8px 12px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #334155;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.method-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.method-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.method-description {
+  font-size: 12px;
+  color: #64748b;
+  font-style: italic;
+  margin-top: 2px;
+}
+
 .control-group {
   display: flex;
   gap: 20px;
@@ -386,6 +427,12 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.sample-count {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: normal;
 }
 
 input[type="range"] {

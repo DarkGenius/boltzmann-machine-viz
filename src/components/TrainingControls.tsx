@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { TrainingProgress, DataSource } from '../types';
+import type { TrainingProgress, DataSource, TrainingMethod } from '../types';
 import { ProgressBar } from './ProgressBar';
 
 interface TrainingControlsProps {
@@ -7,6 +7,7 @@ interface TrainingControlsProps {
   onLoadSaved: () => void;
   onSaveWeightsToggle: (enabled: boolean) => void;
   onDataSourceToggle: (dataSource: DataSource) => void;
+  onTrainingMethodChange: (method: TrainingMethod) => void;
   isTraining: boolean;
   trainingProgress: TrainingProgress | null;
 }
@@ -16,11 +17,13 @@ export function TrainingControls({
   onLoadSaved,
   onSaveWeightsToggle,
   onDataSourceToggle,
+  onTrainingMethodChange,
   isTraining,
   trainingProgress
 }: TrainingControlsProps) {
   const [saveWeights, setSaveWeights] = useState(true);
   const [useRealMNIST, setUseRealMNIST] = useState(false);
+  const [trainingMethod, setTrainingMethod] = useState<TrainingMethod>('contrastive-divergence');
   const [hasSavedWeights, setHasSavedWeights] = useState(false);
 
   useEffect(() => {
@@ -37,12 +40,20 @@ export function TrainingControls({
     onDataSourceToggle(useRealMNIST ? 'mnist' : 'generated');
   }, [useRealMNIST, onDataSourceToggle]);
 
+  useEffect(() => {
+    onTrainingMethodChange(trainingMethod);
+  }, [trainingMethod, onTrainingMethodChange]);
+
   const handleSaveWeightsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSaveWeights(e.target.checked);
   };
 
   const handleDataSourceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUseRealMNIST(e.target.checked);
+  };
+
+  const handleTrainingMethodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setTrainingMethod(e.target.value as TrainingMethod);
   };
 
   const handleDeleteWeights = () => {
@@ -85,6 +96,30 @@ export function TrainingControls({
       <div className="control-section">
         <div className="section-header">⚙️ Настройки</div>
         <div className="settings-group">
+          <div className="setting-item">
+            <label className="setting-label">Метод обучения:</label>
+            <select
+              value={trainingMethod}
+              onChange={handleTrainingMethodChange}
+              disabled={isTraining}
+              className="method-select"
+            >
+              <option value="contrastive-divergence">
+                Контрастивная дивергенция (CD)
+              </option>
+              <option value="simulated-annealing">
+                Имитация отжига (SA)
+              </option>
+            </select>
+            <div className="method-description">
+              {trainingMethod === 'contrastive-divergence' ? (
+                <span>Быстрый современный метод (2002, Хинтон)</span>
+              ) : (
+                <span>Оригинальный метод из работы 1985 года (Хинтон и Сейновски)</span>
+              )}
+            </div>
+          </div>
+
           <label className="checkbox-container">
             <input
               type="checkbox"

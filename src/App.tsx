@@ -21,7 +21,8 @@ function App() {
     trainingProgress,
     trainNetwork,
     loadSavedWeights,
-    handleDataSourceChange
+    handleDataSourceChange,
+    handleTrainingMethodChange
   } = useRBM();
 
   const handleModeChange = (mode: ViewMode) => {
@@ -45,6 +46,7 @@ function App() {
         onLoadSaved={loadSavedWeights}
         onSaveWeightsToggle={handleSaveWeightsToggle}
         onDataSourceToggle={handleDataSourceChange}
+        onTrainingMethodChange={handleTrainingMethodChange}
         isTraining={isTraining}
         trainingProgress={trainingProgress}
       />

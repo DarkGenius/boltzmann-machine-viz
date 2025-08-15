@@ -1,8 +1,11 @@
+export type TrainingMethod = 'contrastive-divergence' | 'simulated-annealing';
+
 export interface RBMParams {
   nVisible: number;
   nHidden: number;
   learningRate: number;
   batchSize: number;
+  trainingMethod?: TrainingMethod;
 }
 
 export interface TrainingProgress {

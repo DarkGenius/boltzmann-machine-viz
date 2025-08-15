@@ -59,6 +59,7 @@ export function SampleVisualization({ rbm, data }: SampleVisualizationProps) {
       <div className="slider-container">
         <div className="slider-label">
           Индекс образца: <span>{sampleIndex}</span>
+          <span className="sample-count">({data.length} образцов)</span>
         </div>
         <input
           type="range"
