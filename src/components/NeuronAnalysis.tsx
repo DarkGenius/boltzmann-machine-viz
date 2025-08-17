@@ -118,7 +118,7 @@ export function NeuronAnalysis({ rbm, sample, hiddenActivations }: NeuronAnalysi
               </div>
             </span>
           </div>
-          <canvas ref={filterCanvasRef} width="168" height="168" />
+          <canvas ref={filterCanvasRef} width="200" height="200" />
         </div>
 
         <div className="analysis-panel">
@@ -139,7 +139,7 @@ export function NeuronAnalysis({ rbm, sample, hiddenActivations }: NeuronAnalysi
               </div>
             </span>
           </div>
-          <canvas ref={overlayCanvasRef} width="168" height="168" />
+          <canvas ref={overlayCanvasRef} width="200" height="200" />
         </div>
 
         <div className="analysis-panel">
@@ -160,7 +160,7 @@ export function NeuronAnalysis({ rbm, sample, hiddenActivations }: NeuronAnalysi
               </div>
             </span>
           </div>
-          <canvas ref={contributionCanvasRef} width="168" height="168" />
+          <canvas ref={contributionCanvasRef} width="200" height="200" />
         </div>
       </div>
     </div>

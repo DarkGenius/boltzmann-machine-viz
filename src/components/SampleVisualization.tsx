@@ -56,20 +56,21 @@ export function SampleVisualization({ rbm, data }: SampleVisualizationProps) {
 
   return (
     <div className="visualization active">
-      <div className="slider-container">
-        <div className="slider-label">
-          Индекс образца: <span>{sampleIndex}</span>
+      <div className="viz-row">
+        <div className="sample-selector">
+          <div className="selector-label">Индекс образца:</div>
+          <div className="selector-value">{sampleIndex}</div>
+          <input
+            type="range"
+            min="0"
+            max={data.length - 1}
+            value={sampleIndex}
+            onChange={handleSliderChange}
+            className="selector-slider"
+          />
+          <div className="selector-range">0-{data.length - 1}</div>
         </div>
-        <input
-          type="range"
-          min="0"
-          max={data.length - 1}
-          value={sampleIndex}
-          onChange={handleSliderChange}
-        />
-      </div>
 
-      <div className="viz-panels">
         <div className="viz-panel">
           <div className="viz-title">Оригинал</div>
           <canvas
@@ -112,7 +113,7 @@ export function SampleVisualization({ rbm, data }: SampleVisualizationProps) {
           </div>
         </div>
       </div>
-
+      
       {currentSample && hiddenActivations && (
         <NeuronAnalysis 
           rbm={rbm}

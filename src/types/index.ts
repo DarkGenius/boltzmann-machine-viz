@@ -1,8 +1,11 @@
+export type TrainingMethod = 'contrastive-divergence' | 'equilibrium';
+
 export interface RBMParams {
   nVisible: number;
   nHidden: number;
   learningRate: number;
   batchSize: number;
+  trainingMethod?: TrainingMethod;
 }
 
 export interface TrainingProgress {
