@@ -1,4 +1,4 @@
-export type TrainingMethod = 'contrastive-divergence' | 'simulated-annealing';
+export type TrainingMethod = 'contrastive-divergence' | 'equilibrium';
 
 export interface RBMParams {
   nVisible: number;

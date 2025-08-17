@@ -8,6 +8,7 @@ import { InfoPanel } from './components/InfoPanel';
 import { ModeButtons } from './components/ModeButtons';
 import { SampleVisualization } from './components/SampleVisualization';
 import { FiltersVisualization } from './components/FiltersVisualization';
+import { Footer } from './components/Footer';
 
 import './styles/App.css';
 
@@ -22,7 +23,9 @@ function App() {
     trainNetwork,
     loadSavedWeights,
     handleDataSourceChange,
-    handleTrainingMethodChange
+    handleTrainingMethodChange,
+    handleSelectedDigitChange,
+    handleEpochsChange
   } = useRBM();
 
   const handleModeChange = (mode: ViewMode) => {
@@ -32,7 +35,7 @@ function App() {
   };
 
   const handleSaveWeightsToggle = (enabled: boolean) => {
-    console.log('Save weights toggled:', enabled);
+    // console.log('Save weights toggled:', enabled);
   };
 
   return (
@@ -47,6 +50,8 @@ function App() {
         onSaveWeightsToggle={handleSaveWeightsToggle}
         onDataSourceToggle={handleDataSourceChange}
         onTrainingMethodChange={handleTrainingMethodChange}
+        onSelectedDigitChange={handleSelectedDigitChange}
+        onEpochsChange={handleEpochsChange}
         isTraining={isTraining}
         trainingProgress={trainingProgress}
       />
@@ -74,6 +79,8 @@ function App() {
           )}
         </>
       )}
+      
+      <Footer />
     </div>
   );
 }

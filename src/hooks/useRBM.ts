@@ -3,6 +3,7 @@ import { BernoulliRBM } from '../ml/BernoulliRBM';
 import type { TrainingProgress, DataSource, TrainingMethod } from '../types';
 import { loadMNIST } from '../utils/mnistGenerator';
 import { loadRealMNIST } from '../utils/mnistLoader';
+import { DEFAULT_SAMPLE_DIGIT, DEFAULT_EPOCHS } from '../constants';
 
 export function useRBM() {
   const [rbm, setRBM] = useState<BernoulliRBM | null>(null);
@@ -12,29 +13,58 @@ export function useRBM() {
   const [trainingProgress, setTrainingProgress] = useState<TrainingProgress | null>(null);
   const [dataSource, setDataSource] = useState<DataSource>('generated');
   const [trainingMethod, setTrainingMethod] = useState<TrainingMethod>('contrastive-divergence');
+  const [selectedDigit, setSelectedDigit] = useState(DEFAULT_SAMPLE_DIGIT);
+  const [epochs, setEpochs] = useState(DEFAULT_EPOCHS);
 
   const abortController = useRef<AbortController | null>(null);
 
   const loadData = useCallback(async (forceReload = false) => {
     if (!mnistData || forceReload) {
       let data: Float32Array[];
-      
+
       if (dataSource === 'mnist') {
         try {
-          data = await loadRealMNIST();
+          if (trainingMethod === 'equilibrium') {
+            // Для equilibrium sampling отбираем конкретную цифру из MNIST
+            console.log(`📊 Загружаем реальные данные MNIST для цифры: ${selectedDigit}`);
+            const { loadRealMNIST, getMNISTLabels } = await import('../utils/mnistLoader');
+            const [mnistData, labels] = await Promise.all([
+              loadRealMNIST(),
+              getMNISTLabels()
+            ]);
+
+            // Фильтруем данные только для выбранной цифры
+            const filteredData = mnistData.filter((_, index) => labels[index] === selectedDigit);
+            data = filteredData.slice(0, 20); // Берем первые 20 образцов
+            console.log(`✅ Отфильтровано ${data.length} образцов цифры ${selectedDigit} из реальных данных MNIST`);
+          } else {
+            // Для CD используем все данные MNIST
+            console.log(`📊 Загружаем все реальные данные MNIST для CD`);
+            data = await loadRealMNIST();
+          }
         } catch (error) {
           console.error('Переключение на сгенерированные данные из-за ошибки:', error);
-          data = await loadMNIST();
+          if (trainingMethod === 'equilibrium') {
+            data = await loadMNIST(20, [selectedDigit]);
+          } else {
+            data = await loadMNIST();
+          }
         }
       } else {
-        data = await loadMNIST();
+        if (trainingMethod === 'equilibrium') {
+          console.log(`📊 Загружаем сгенерированные данные для цифры: ${selectedDigit}`);
+          data = await loadMNIST(20, [selectedDigit]);
+        } else {
+          console.log(`📊 Загружаем все сгенерированные данные для CD`);
+          data = await loadMNIST();
+        }
       }
-      
+
       setMnistData(data);
       return data;
     }
     return mnistData;
-  }, [mnistData, dataSource]);
+  }, [mnistData, dataSource, trainingMethod, selectedDigit]);
 
   const trainNetwork = useCallback(async () => {
     console.log(`🎬 Начинаем обучение. Текущий метод: ${trainingMethod}`);
@@ -42,57 +72,32 @@ export function useRBM() {
 
     setIsTraining(true);
     abortController.current = new AbortController();
-    
+
     try {
       setTrainingProgress({
         epoch: 0,
-        totalEpochs: 15,
+        totalEpochs: epochs,
         progress: 0,
         status: 'Загрузка данных...'
       });
 
       const fullData = await loadData(true); // Принудительная перезагрузка при смене источника
-      
+
       if (abortController.current?.signal.aborted) return;
 
-      // Ограничиваем данные для имитации отжига
-      let trainingData: Float32Array[];
-      if (trainingMethod === 'simulated-annealing') {
-        // Выбираем 10 разных образцов с разными цифрами
-        const selectedIndices = new Set<number>();
-        const digitCounts = new Array(10).fill(0); // Счетчик для каждой цифры (0-9)
-        
-        // Сначала пытаемся найти образцы с разными цифрами
-        for (let i = 0; i < fullData.length && selectedIndices.size < 10; i++) {
-          // Простая эвристика для определения цифры по паттерну
-          let digit = Math.floor(Math.random() * 10); // Временное решение
-          
-          // Если у нас еще нет этой цифры или у нас меньше 10 образцов
-          if (digitCounts[digit] === 0 || selectedIndices.size < 5) {
-            selectedIndices.add(i);
-            digitCounts[digit]++;
-          }
-        }
-        
-        // Если не нашли достаточно разных, добавляем случайные
-        while (selectedIndices.size < 10) {
-          const randomIndex = Math.floor(Math.random() * fullData.length);
-          if (!selectedIndices.has(randomIndex)) {
-            selectedIndices.add(randomIndex);
-          }
-        }
-        
-        trainingData = Array.from(selectedIndices).map(index => fullData[index]);
-        console.log(`❄️ Имитация отжига: выбрано ${trainingData.length} разных образцов из ${fullData.length}`);
+      // Используем данные в зависимости от метода
+      let trainingData: Float32Array[] = fullData;
+      if (trainingMethod === 'equilibrium') {
+        console.log(`❄️ Equilibrium sampling: используем ${trainingData.length} образцов цифры ${selectedDigit}`);
       } else {
-        trainingData = fullData;
+        console.log(`⚡ Contrastive Divergence: используем ${trainingData.length} образцов`);
       }
 
       setTrainingData(trainingData);
 
       setTrainingProgress({
         epoch: 0,
-        totalEpochs: 15,
+        totalEpochs: epochs,
         progress: 10,
         status: 'Инициализация RBM...'
       });
@@ -108,11 +113,10 @@ export function useRBM() {
 
       if (abortController.current?.signal.aborted) return;
 
-      // Увеличиваем количество эпох для имитации отжига
-      const epochs = trainingMethod === 'simulated-annealing' ? 25 : 15;
+      // Используем настройку количества эпох
       await newRBM.fit(trainingData, epochs, (epoch, totalEpochs) => {
         if (abortController.current?.signal.aborted) return;
-        
+
         const progress = 10 + (epoch / totalEpochs) * 90;
         setTrainingProgress({
           epoch,
@@ -125,15 +129,15 @@ export function useRBM() {
       if (abortController.current?.signal.aborted) return;
 
       setRBM(newRBM);
-      
+
       const saveWeights = localStorage.getItem('rbm_save_weights') !== 'false';
       if (saveWeights) {
         newRBM.saveToLocalStorage();
       }
 
       setTrainingProgress({
-        epoch: 15,
-        totalEpochs: 15,
+        epoch: epochs,
+        totalEpochs: epochs,
         progress: 100,
         status: 'Обучение завершено!'
       });
@@ -142,7 +146,7 @@ export function useRBM() {
       console.error('Ошибка обучения:', error);
       setTrainingProgress({
         epoch: 0,
-        totalEpochs: 15,
+        totalEpochs: epochs,
         progress: 0,
         status: 'Ошибка обучения'
       });
@@ -150,7 +154,7 @@ export function useRBM() {
       setIsTraining(false);
       setTimeout(() => setTrainingProgress(null), 2000);
     }
-  }, [isTraining, loadData, trainingMethod]);
+  }, [isTraining, loadData, trainingMethod, selectedDigit, epochs]);
 
   const loadSavedWeights = useCallback(() => {
     const loadedRBM = BernoulliRBM.loadFromLocalStorage();
@@ -170,6 +174,17 @@ export function useRBM() {
     setTrainingMethod(newMethod);
   }, [trainingMethod]);
 
+  const handleSelectedDigitChange = useCallback((digit: number) => {
+    console.log(`🔢 Смена выбранной цифры: ${selectedDigit} → ${digit}`);
+    setSelectedDigit(digit);
+    setMnistData(null); // Очищаем кеш данных при смене цифры
+  }, [selectedDigit]);
+
+  const handleEpochsChange = useCallback((newEpochs: number) => {
+    console.log(`🔄 Смена количества эпох: ${epochs} → ${newEpochs}`);
+    setEpochs(newEpochs);
+  }, [epochs]);
+
   const stopTraining = useCallback(() => {
     if (abortController.current) {
       abortController.current.abort();
@@ -178,13 +193,10 @@ export function useRBM() {
     }
   }, []);
 
-  // Возвращаем данные для визуализации в зависимости от метода обучения
+  // Возвращаем данные для визуализации
   const getVisualizationData = useCallback(() => {
-    if (trainingMethod === 'simulated-annealing' && trainingData) {
-      return trainingData; // Для SA показываем только данные обучения
-    }
-    return mnistData; // Для CD показываем все данные
-  }, [trainingMethod, trainingData, mnistData]);
+    return mnistData; // Показываем все данные
+  }, [mnistData]);
 
   return {
     rbm,
@@ -198,6 +210,8 @@ export function useRBM() {
     stopTraining,
     loadData,
     handleDataSourceChange,
-    handleTrainingMethodChange
+    handleTrainingMethodChange,
+    handleSelectedDigitChange,
+    handleEpochsChange
   };
 }

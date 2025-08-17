@@ -15,10 +15,10 @@ function drawLine(
     const t = i / steps;
     const x = x1 + (x2 - x1) * t;
     const y = y1 + (y2 - y1) * t;
-    
+
     const xRot = (x - 14) * Math.cos(angle) - (y - 14) * Math.sin(angle) + 14 + offsetX;
     const yRot = (x - 14) * Math.sin(angle) + (y - 14) * Math.cos(angle) + 14 + offsetY;
-    
+
     for (let dy = -2; dy <= 2; dy++) {
       for (let dx = -2; dx <= 2; dx++) {
         const px = Math.round(xRot + dx);
@@ -53,7 +53,7 @@ function drawEllipse(
     const nextY = cy + ry * Math.sin(a + 0.05);
     drawLine(canvas, x, y, nextX, nextY, intensity, thickness, angle, offsetX, offsetY);
   }
-  
+
   if (filled) {
     for (let y = cy - ry; y <= cy + ry; y += 0.5) {
       for (let x = cx - rx; x <= cx + rx; x += 0.5) {
@@ -71,19 +71,19 @@ function drawEllipse(
 
 export function generateDigit(digit: number, variation = 0): Float32Array {
   const canvas = new Float32Array(784);
-  
-  const angle = (variation * 0.1 - 0.5) * 0.3;
+
+  const angle = (variation * 0.5 - 0.5) * 0.2;
   const thickness = 1.5 + variation * 0.2;
-  const offsetX = (variation * 0.2 - 0.1) * 4;
-  const offsetY = (variation * 0.2 - 0.1) * 4;
-  
-  const draw = (x1: number, y1: number, x2: number, y2: number, intensity = 0.9) => 
+  const offsetX = (variation * 0.6 - 0.1) * 4;
+  const offsetY = (variation * 0.5 - 0.1) * 4;
+
+  const draw = (x1: number, y1: number, x2: number, y2: number, intensity = 0.9) =>
     drawLine(canvas, x1, y1, x2, y2, intensity, thickness, angle, offsetX, offsetY);
-  
+
   const ellipse = (cx: number, cy: number, rx: number, ry: number, intensity = 0.9, filled = false) =>
     drawEllipse(canvas, cx, cy, rx, ry, intensity, filled, thickness, angle, offsetX, offsetY);
-  
-  switch(digit) {
+
+  switch (digit) {
     case 0:
       ellipse(14, 14, 5, 7, 0.9);
       break;
@@ -112,13 +112,13 @@ export function generateDigit(digit: number, variation = 0): Float32Array {
       draw(16, 6, 16, 22, 0.9);
       break;
     case 5:
-      draw(18, 8, 10, 8, 0.8);
-      draw(10, 8, 10, 14, 0.8);
-      draw(10, 14, 16, 12, 0.8);
-      draw(16, 12, 18, 14, 0.8);
-      draw(18, 14, 18, 18, 0.8);
-      draw(18, 18, 14, 22, 0.8);
-      draw(14, 22, 9, 21, 0.8);
+      draw(18, 7, 10, 7, 0.8);  // Верхняя горизонтальная линия
+      draw(10, 7, 10, 12, 0.8);  // Левая вертикальная линия
+      draw(10, 12, 16, 13, 0.8); // Средняя горизонтальная линия (сдвинута ниже)
+      draw(16, 13, 18, 15, 0.8); // Правый верхний угол нижней части
+      draw(18, 15, 18, 19, 0.8); // Правая вертикальная линия
+      draw(18, 19, 14, 22, 0.8); // Правый нижний угол
+      draw(14, 22, 9, 20, 0.8);  // Левый нижний угол
       break;
     case 6:
       draw(16, 8, 12, 8, 0.8);
@@ -146,7 +146,7 @@ export function generateDigit(digit: number, variation = 0): Float32Array {
       draw(16, 20, 12, 21, 0.8);
       break;
   }
-  
+
   const blurred = new Float32Array(784);
   for (let y = 0; y < 28; y++) {
     for (let x = 0; x < 28; x++) {
@@ -164,41 +164,42 @@ export function generateDigit(digit: number, variation = 0): Float32Array {
         }
       }
       blurred[y * 28 + x] = sum / count;
-      blurred[y * 28 + x] += (Math.random() - 0.5) * 0.05;
+      blurred[y * 28 + x] += (Math.random() - 0.5) * 0.1;
       blurred[y * 28 + x] = Math.max(0, Math.min(1, blurred[y * 28 + x]));
     }
   }
-  
+
   return blurred;
 }
 
-export async function loadMNIST(): Promise<Float32Array[]> {
-  const nSamples = 2000;
+export async function loadMNIST(nSamples = 2000, onlyDigits: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]): Promise<Float32Array[]> {
   const data: Float32Array[] = [];
-  
+
   for (let i = 0; i < nSamples; i++) {
-    const digit = Math.floor(i / 200);
+    const digit = onlyDigits[Math.floor(i / 200)];
     const variation = (i % 200) / 200;
-    const randomVariation = variation + Math.random() * 0.1;
+    console.log(`variation= ${variation}`);
+    const randomVariation = variation + Math.random() * 1.3;
+    console.log(`randomVariation= ${randomVariation}`);
     const sample = generateDigit(digit, randomVariation);
     data.push(sample);
   }
-  
+
   for (let i = data.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [data[i], data[j]] = [data[j], data[i]];
   }
-  
+
   // Отладочная информация
   if (data.length > 0) {
     const firstSample = data[0];
     const nonZeroPixels = Array.from(firstSample).filter(p => p > 0).length;
     const maxValue = Math.max(...Array.from(firstSample));
     const minValue = Math.min(...Array.from(firstSample));
-    
+
     console.log(`✅ Сгенерировано ${data.length} синтетических образцов MNIST`);
     console.log(`📊 Первый образец: ${nonZeroPixels}/784 ненулевых пикселей, диапазон [${minValue.toFixed(3)}, ${maxValue.toFixed(3)}]`);
   }
-  
+
   return data;
 }
