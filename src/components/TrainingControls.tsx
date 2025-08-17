@@ -9,7 +9,7 @@ import { DEFAULT_SAMPLE_DIGIT, DEFAULT_EPOCHS } from '../constants';
 interface TrainingControlsProps {
   onTrain: () => void;
   onLoadSaved: () => void;
-  onSaveWeightsToggle: (enabled: boolean) => void;
+  onSaveWeightsToggle?: (enabled: boolean) => void;
   onDataSourceToggle: (dataSource: DataSource) => void;
   onTrainingMethodChange: (method: TrainingMethod) => void;
   onSelectedDigitChange?: (digit: number) => void;
@@ -45,7 +45,7 @@ export function TrainingControls({
 
   useEffect(() => {
     localStorage.setItem('rbm_save_weights', saveWeights.toString());
-    onSaveWeightsToggle(saveWeights);
+    onSaveWeightsToggle?.(saveWeights);
   }, [saveWeights, onSaveWeightsToggle]);
 
   useEffect(() => {

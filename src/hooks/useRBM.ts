@@ -8,7 +8,7 @@ import { DEFAULT_SAMPLE_DIGIT, DEFAULT_EPOCHS } from '../constants';
 export function useRBM() {
   const [rbm, setRBM] = useState<BernoulliRBM | null>(null);
   const [mnistData, setMnistData] = useState<Float32Array[] | null>(null);
-  const [trainingData, setTrainingData] = useState<Float32Array[] | null>(null);
+  const [_trainingData, setTrainingData] = useState<Float32Array[] | null>(null);
   const [isTraining, setIsTraining] = useState(false);
   const [trainingProgress, setTrainingProgress] = useState<TrainingProgress | null>(null);
   const [dataSource, setDataSource] = useState<DataSource>('generated');

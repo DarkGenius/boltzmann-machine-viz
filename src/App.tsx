@@ -34,10 +34,6 @@ function App() {
     }
   };
 
-  const handleSaveWeightsToggle = (enabled: boolean) => {
-    // console.log('Save weights toggled:', enabled);
-  };
-
   return (
     <div className="container">
       <h1>🧠 Машина Больцмана</h1>
@@ -47,7 +43,6 @@ function App() {
       <TrainingControls
         onTrain={trainNetwork}
         onLoadSaved={loadSavedWeights}
-        onSaveWeightsToggle={handleSaveWeightsToggle}
         onDataSourceToggle={handleDataSourceChange}
         onTrainingMethodChange={handleTrainingMethodChange}
         onSelectedDigitChange={handleSelectedDigitChange}

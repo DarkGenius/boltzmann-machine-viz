@@ -92,27 +92,7 @@ export class BernoulliRBM {
     return energy;
   }
 
-  /**
-   * Выборка Гиббса - основной метод для генерации новых состояний в RBM
-   * Чередует выборку видимого и скрытого слоев для получения образцов из распределения
-   * @param visible - начальное состояние видимого слоя
-   * @param steps - количество шагов выборки Гиббса (по умолчанию 1)
-   * @returns объект с видимым и скрытым состояниями
-   */
-  private gibbsSample(visible: Float32Array, steps: number = 1): { visible: Float32Array, hidden: Float32Array } {
-    let currentVisible = visible.slice();
-    let currentHidden = new Float32Array(this.nHidden);
 
-    for (let step = 0; step < steps; step++) {
-      // Шаг 1: Выборка скрытого слоя на основе видимого
-      currentHidden = this.sampleHiddenBinary(currentVisible);
-
-      // Шаг 2: Выборка видимого слоя на основе скрытого
-      currentVisible = this.sampleVisibleBinary(currentHidden);
-    }
-
-    return { visible: currentVisible, hidden: currentHidden };
-  }
 
   /**
    * Базовый метод для вычисления вероятностей активации нейронов
@@ -211,18 +191,7 @@ export class BernoulliRBM {
     return Array(rows).fill(null).map(() => new Float32Array(cols));
   }
 
-  /**
-   * Создает случайный бинарный вектор
-   * @param size - размер вектора
-   * @returns бинарный вектор со случайными значениями 0 или 1
-   */
-  private randomBinaryVector(size: number): Float32Array {
-    const vector = new Float32Array(size);
-    for (let i = 0; i < size; i++) {
-      vector[i] = Math.random() < 0.5 ? 1 : 0;
-    }
-    return vector;
-  }
+
 
   /**
    * Создает перемешанный массив индексов для случайного порядка данных
